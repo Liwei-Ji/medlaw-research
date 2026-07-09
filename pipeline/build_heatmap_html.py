@@ -1,0 +1,279 @@
+# -*- coding: utf-8 -*-
+import json
+data=json.load(open("heatmap_data.json",encoding="utf-8"))
+DATA_JSON=json.dumps(data,ensure_ascii=False)
+# grand stats
+grand=0;crim=0
+for ct,ys in data["cube"].items():
+    for y,cc in ys.items():
+        for c,n in cc.items():
+            grand+=n
+            if c=="刑事":crim+=n
+STAT=dict(grand=grand,courts=len(data["courts"]),crim_pct=round(crim/grand*100))
+
+HTML=r'''<div class="viz-root" id="app">
+<style>
+  html,body{margin:0;padding:0}
+  .viz-root{
+    --page:#f4f5f7; --surface:#fcfcfd; --surface-2:#f7f8fa;
+    --ink:#101319; --ink-2:#4a5160; --muted:#7c8496;
+    --hair:#e5e8ee; --axis:#c7ccd6; --ring:rgba(16,19,25,.10);
+    --accent:#2a78d6; --accent-soft:#eaf1fb;
+    --cell-empty:#eef1f6; --shadow:0 1px 2px rgba(16,19,25,.05),0 8px 24px rgba(16,19,25,.06);
+    /* sequential blue ramp, light mode (low -> high) */
+    --r0:#e9eff7;--r1:#cde2fb;--r2:#b7d3f6;--r3:#9ec5f4;--r4:#86b6ef;--r5:#6da7ec;--r6:#5598e7;--r7:#3987e5;--r8:#2a78d6;--r9:#256abf;--r10:#1c5cab;--r11:#184f95;--r12:#104281;--r13:#0d366b;
+    color-scheme:light;
+  }
+  /* 預設淺色；深色僅在使用者按切換鈕（data-theme="dark"）時套用 */
+  :root[data-theme="light"] .viz-root{
+    --page:#f4f5f7;--surface:#fcfcfd;--surface-2:#f7f8fa;--ink:#101319;--ink-2:#4a5160;--muted:#7c8496;--hair:#e5e8ee;--axis:#c7ccd6;--ring:rgba(16,19,25,.10);--accent:#2a78d6;--accent-soft:#eaf1fb;--cell-empty:#eef1f6;
+    --r0:#e9eff7;--r1:#cde2fb;--r2:#b7d3f6;--r3:#9ec5f4;--r4:#86b6ef;--r5:#6da7ec;--r6:#5598e7;--r7:#3987e5;--r8:#2a78d6;--r9:#256abf;--r10:#1c5cab;--r11:#184f95;--r12:#104281;--r13:#0d366b;color-scheme:light;
+  }
+  :root[data-theme="dark"] .viz-root{
+    --page:#0c0d10;--surface:#16181d;--surface-2:#1b1e24;--ink:#f2f4f8;--ink-2:#b7bec8;--muted:#8a92a2;--hair:#262a31;--axis:#3a3f49;--ring:rgba(255,255,255,.12);--accent:#3987e5;--accent-soft:#1a2536;--cell-empty:#1c1f26;
+    --r0:#182231;--r1:#1c2c44;--r2:#1c3a63;--r3:#1c4c8a;--r4:#1c5cab;--r5:#256abf;--r6:#2a78d6;--r7:#3987e5;--r8:#4a92e8;--r9:#5f9fea;--r10:#77afed;--r11:#90bef1;--r12:#a9cdf5;--r13:#c2ddf8;color-scheme:dark;
+  }
+  .viz-root *{box-sizing:border-box}
+  .viz-root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--page);color:var(--ink);
+    padding:clamp(16px,3vw,40px);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+  .wrap{max-width:1080px;margin:0 auto}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  h1{font-size:clamp(22px,3.2vw,30px);font-weight:750;margin:.28em 0 .15em;letter-spacing:-.01em;text-wrap:balance}
+  .sub{color:var(--ink-2);font-size:14px;max-width:64ch}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .themebtn{flex:none;border:1px solid var(--hair);background:var(--surface);color:var(--ink-2);border-radius:9px;
+    padding:8px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .themebtn:hover{border-color:var(--axis)}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0 6px}
+  @media(max-width:620px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
+  .tile .k{font-size:11px;font-weight:650;letter-spacing:.03em;color:var(--muted);text-transform:uppercase}
+  .tile .v{font-size:24px;font-weight:760;margin-top:3px;font-variant-numeric:tabular-nums}
+  .tile .v small{font-size:13px;font-weight:600;color:var(--ink-2)}
+  .controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:22px 0 12px}
+  .controls .lbl{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+  .chip{border:1px solid var(--hair);background:var(--surface);color:var(--ink-2);border-radius:999px;
+    padding:6px 13px;font-size:13px;font-weight:600;cursor:pointer;transition:background .12s,color .12s,border-color .12s}
+  .chip:hover{border-color:var(--axis)}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:14px;box-shadow:var(--shadow);
+    padding:6px 6px 10px;margin-top:6px;overflow-x:auto}
+  table{border-collapse:separate;border-spacing:3px;width:100%;min-width:560px}
+  caption{caption-side:top;text-align:left;padding:8px 8px 10px;font-size:12.5px;color:var(--ink-2)}
+  th,td{font-variant-numeric:tabular-nums}
+  thead th{position:sticky;top:0;background:var(--surface);z-index:2;font-size:12.5px;font-weight:700;color:var(--ink-2);
+    padding:8px 6px;text-align:center;cursor:pointer;white-space:nowrap;border-bottom:2px solid var(--hair)}
+  thead th.court{text-align:left;padding-left:12px}
+  thead th:hover{color:var(--accent)}
+  thead th .arrow{font-size:9px;color:var(--accent);margin-left:3px}
+  tbody th{font-weight:600;font-size:13px;text-align:left;padding:0 10px;color:var(--ink);white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+  td.cell{width:64px;height:34px;text-align:center;border-radius:5px;font-size:12.5px;font-weight:640;cursor:default;
+    position:relative;transition:transform .08s;color:#fff}
+  td.cell.empty{color:var(--muted);font-weight:500}
+  td.cell:hover{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
+  td.total{width:96px;text-align:right;padding-right:12px;font-weight:730;font-size:13px;color:var(--ink);
+    font-variant-numeric:tabular-nums;position:relative}
+  td.total .bar{position:absolute;left:6px;bottom:3px;height:3px;border-radius:2px;background:var(--accent);opacity:.5}
+  tfoot th,tfoot td{font-weight:750;font-size:12.5px;color:var(--ink);padding:8px 6px;border-top:2px solid var(--hair)}
+  tfoot th{text-align:left;padding-left:12px}
+  tfoot td{text-align:center}
+  tfoot td.total{text-align:right;padding-right:12px}
+  .legend{display:flex;align-items:center;gap:10px;margin:16px 2px 0;flex-wrap:wrap}
+  .legend .scale{display:flex;height:12px;border-radius:3px;overflow:hidden;width:220px;border:1px solid var(--ring)}
+  .legend .scale i{flex:1}
+  .legend .tk{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .legend .note{font-size:11.5px;color:var(--muted)}
+  .tooltip{position:fixed;pointer-events:none;z-index:50;background:var(--ink);color:var(--surface);
+    border-radius:9px;padding:9px 11px;font-size:12.5px;box-shadow:0 8px 28px rgba(0,0,0,.28);opacity:0;
+    transform:translateY(4px);transition:opacity .1s,transform .1s;max-width:240px}
+  .tooltip.on{opacity:1;transform:none}
+  .tooltip .tt-v{font-size:16px;font-weight:750;font-variant-numeric:tabular-nums}
+  .tooltip .tt-c{color:var(--surface);opacity:.8;font-size:12px;margin-top:1px}
+  .tooltip .tt-row{display:flex;justify-content:space-between;gap:14px;margin-top:4px;opacity:.92}
+  .tooltip .tt-row b{font-variant-numeric:tabular-nums;font-weight:700}
+  .foot{color:var(--muted);font-size:12px;margin-top:20px;line-height:1.6}
+  .foot b{color:var(--ink-2);font-weight:650}
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div>
+      <div class="eyebrow">司法院裁判書系統 · 裁判日期 112–115 年</div>
+      <h1>醫藥五法判決分布：法院 × 年度 × 類別</h1>
+      <p class="sub">藥事法、醫療器材管理法、醫療法、醫師法、藥師法之全文檢索判決（去重後 14,031 筆）。色深表示件數多；點選上方類別可切換第三維度，點欄位標題可排序。</p>
+    </div>
+    <button class="themebtn" id="themebtn" type="button">◐ 切換深色</button>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">判決總數</div><div class="v" id="t-grand">—</div></div>
+    <div class="tile"><div class="k">法院數</div><div class="v" id="t-courts">—</div></div>
+    <div class="tile"><div class="k">裁判期間</div><div class="v">112–115<small> 年</small></div></div>
+    <div class="tile"><div class="k">刑事占比</div><div class="v" id="t-crim">—</div></div>
+  </div>
+
+  <div class="controls">
+    <span class="lbl">類別</span>
+    <button class="chip" data-cat="全部" aria-pressed="true" type="button">全部</button>
+    <button class="chip" data-cat="刑事" type="button">刑事</button>
+    <button class="chip" data-cat="民事" type="button">民事</button>
+    <button class="chip" data-cat="行政" type="button">行政</button>
+    <button class="chip" data-cat="懲戒" type="button">懲戒</button>
+    <button class="chip" data-cat="憲法法庭" type="button">憲法法庭</button>
+  </div>
+
+  <div class="card">
+    <table id="heat">
+      <caption id="cap">全部類別 · 各法院逐年件數</caption>
+      <thead><tr id="head"></tr></thead>
+      <tbody id="body"></tbody>
+      <tfoot id="foot"></tfoot>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span class="tk">少</span>
+    <span class="scale" id="scale"></span>
+    <span class="tk" id="scale-max">多</span>
+    <span class="note" id="scale-note"></span>
+  </div>
+
+  <p class="foot">
+    <b>資料</b>：司法院裁判書查詢系統，全文檢索五法、依裁判日期 112/1/1–115/12/31。<b>年度</b>依裁判日期之民國年（115 年僅至 7 月）。<b>類別</b>依審判系統（刑事／民事／行政／懲戒／憲法法庭）；跨法規判決計入其唯一裁判。色階採平方根映射以利呈現長尾分布，每格數字恆顯示。
+  </p>
+</div>
+
+<div class="tooltip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const DATA=__DATA__;
+const STAT=__STAT__;
+function getVar(n){return getComputedStyle(document.getElementById('app')).getPropertyValue(n).trim();}
+function readRamp(){return Array.from({length:14},(_,i)=>getVar('--r'+i));}
+let RAMP=readRamp();
+const YEARS=DATA.years, COURTS=DATA.courts, CUBE=DATA.cube;
+let activeCat="全部", sortKey="__total__", sortDir=-1;
+
+function cellCount(ct,y,cat){
+  const c=CUBE[ct][String(y)]||{};
+  if(cat==="全部") return Object.values(c).reduce((a,b)=>a+b,0);
+  return c[cat]||0;
+}
+function rowTotal(ct,cat){return YEARS.reduce((a,y)=>a+cellCount(ct,y,cat),0);}
+function curMax(cat){let m=0;for(const ct of COURTS)for(const y of YEARS)m=Math.max(m,cellCount(ct,y,cat));return m;}
+
+function lum(hex){hex=hex.replace('#','');const r=parseInt(hex.substr(0,2),16)/255,g=parseInt(hex.substr(2,2),16)/255,b=parseInt(hex.substr(4,2),16)/255;
+  const f=x=>x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4);return .2126*f(r)+.7152*f(g)+.0722*f(b);}
+function colorFor(v,max){ if(v<=0) return {bg:getVar('--cell-empty'),fg:getVar('--muted'),empty:true};
+  const t=max>0?Math.sqrt(v/max):0; let idx=Math.round(t*(RAMP.length-1)); if(v>0&&idx<1)idx=1;
+  const bg=RAMP[idx]; const fg=lum(bg)>0.5?'#0b0f16':'#ffffff'; return {bg,fg,empty:false};}
+
+function sortedCourts(cat){
+  const arr=COURTS.slice();
+  arr.sort((a,b)=>{
+    let va,vb;
+    if(sortKey==="__court__"){return sortDir*a.localeCompare(b,'zh-Hant');}
+    else if(sortKey==="__total__"){va=rowTotal(a,cat);vb=rowTotal(b,cat);}
+    else{va=cellCount(a,sortKey,cat);vb=cellCount(b,sortKey,cat);}
+    if(va===vb)return rowTotal(b,cat)-rowTotal(a,cat);
+    return sortDir*(va-vb);
+  });
+  return arr;
+}
+function arrow(k){return sortKey===k?`<span class="arrow">${sortDir<0?'▼':'▲'}</span>`:'';}
+
+function render(){
+  RAMP=readRamp();
+  const cat=activeCat, max=curMax(cat);
+  // head
+  const head=document.getElementById('head');
+  head.innerHTML='';
+  const thC=document.createElement('th');thC.className='court';thC.dataset.k='__court__';
+  thC.innerHTML='法院'+arrow('__court__');head.appendChild(thC);
+  for(const y of YEARS){const th=document.createElement('th');th.dataset.k=String(y);th.innerHTML=y+arrow(String(y));head.appendChild(th);}
+  const thT=document.createElement('th');thT.dataset.k='__total__';thT.innerHTML='總計'+arrow('__total__');head.appendChild(thT);
+  head.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=(k==='__court__')?1:-1;}render();});
+  // body
+  const body=document.getElementById('body');body.innerHTML='';
+  const courts=sortedCourts(cat);
+  const grandTotal=courts.reduce((a,ct)=>a+rowTotal(ct,cat),0);
+  const maxRowTot=Math.max(...courts.map(ct=>rowTotal(ct,cat)),1);
+  for(const ct of courts){
+    const tr=document.createElement('tr');
+    const th=document.createElement('th');th.scope='row';th.textContent=ct;th.title=ct;tr.appendChild(th);
+    for(const y of YEARS){
+      const v=cellCount(ct,y,cat);const col=colorFor(v,max);
+      const td=document.createElement('td');td.className='cell'+(col.empty?' empty':'');
+      td.style.background=col.bg;td.style.color=col.fg;td.textContent=v>0?v:'·';
+      td.tabIndex=0;
+      const show=(e)=>tip(e,ct,y,cat,v);
+      td.addEventListener('pointermove',show);td.addEventListener('pointerenter',show);
+      td.addEventListener('focus',show);
+      td.addEventListener('pointerleave',hideTip);td.addEventListener('blur',hideTip);
+      tr.appendChild(td);
+    }
+    const rt=rowTotal(ct,cat);
+    const tdT=document.createElement('td');tdT.className='total';
+    tdT.innerHTML=`${rt.toLocaleString()}<span class="bar" style="width:${Math.max(4,rt/maxRowTot*72)}px"></span>`;
+    tr.appendChild(tdT);
+    body.appendChild(tr);
+  }
+  // foot (year totals)
+  const foot=document.getElementById('foot');foot.innerHTML='';
+  const ftr=document.createElement('tr');
+  const fth=document.createElement('th');fth.textContent='各年合計';ftr.appendChild(fth);
+  for(const y of YEARS){const v=courts.reduce((a,ct)=>a+cellCount(ct,y,cat),0);const td=document.createElement('td');td.textContent=v.toLocaleString();ftr.appendChild(td);}
+  const tdg=document.createElement('td');tdg.className='total';tdg.textContent=grandTotal.toLocaleString();ftr.appendChild(tdg);
+  foot.appendChild(ftr);
+  // caption + legend
+  document.getElementById('cap').textContent=(cat==="全部"?"全部類別":cat)+" · 各法院逐年件數（點欄位可排序）";
+  document.getElementById('scale-max').textContent=max.toLocaleString();
+  document.getElementById('scale-note').textContent=`　最深＝單格 ${max.toLocaleString()} 件`;
+}
+
+function buildScale(){RAMP=readRamp();const s=document.getElementById('scale');s.innerHTML='';RAMP.forEach(c=>{const i=document.createElement('i');i.style.background=c;s.appendChild(i);});}
+
+const tipEl=document.getElementById('tip');
+function tip(e,ct,y,cat,v){
+  let html=`<div class="tt-v">${v.toLocaleString()} 件</div>`;
+  html+=`<div class="tt-c"></div>`;
+  tipEl.innerHTML=html;
+  tipEl.querySelector('.tt-c').textContent=`${ct}　${y} 年　${cat==='全部'?'全部類別':cat}`;
+  if(cat==="全部"){
+    const c=CUBE[ct][String(y)]||{};
+    ["刑事","民事","行政","懲戒","憲法法庭","其他"].forEach(k=>{
+      if(c[k]){const row=document.createElement('div');row.className='tt-row';
+        const a=document.createElement('span');a.textContent=k;const b=document.createElement('b');b.textContent=c[k];
+        row.appendChild(a);row.appendChild(b);tipEl.appendChild(row);}
+    });
+  }
+  tipEl.classList.add('on');
+  const pad=14,w=tipEl.offsetWidth,h=tipEl.offsetHeight;
+  let x=(e.clientX||0)+pad,yy=(e.clientY||0)+pad;
+  if(x+w>innerWidth-8)x=(e.clientX||0)-w-pad; if(yy+h>innerHeight-8)yy=(e.clientY||0)-h-pad;
+  tipEl.style.left=Math.max(8,x)+'px';tipEl.style.top=Math.max(8,yy)+'px';
+}
+function hideTip(){tipEl.classList.remove('on');}
+
+document.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>{
+  activeCat=ch.dataset.cat;
+  document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',c===ch?'true':'false'));
+  render();
+});
+document.getElementById('themebtn').onclick=()=>{
+  const root=document.documentElement;
+  const cur=root.getAttribute('data-theme')||'light';
+  const next=cur==='dark'?'light':'dark';root.setAttribute('data-theme',next);
+  document.getElementById('themebtn').textContent=next==='dark'?'◑ 切換淺色':'◐ 切換深色';
+  buildScale();render();
+};
+
+document.getElementById('t-grand').textContent=STAT.grand.toLocaleString();
+document.getElementById('t-courts').textContent=STAT.courts;
+document.getElementById('t-crim').innerHTML=STAT.crim_pct+'<small> %</small>';
+buildScale();render();
+</script>
+</div>'''
+HTML=HTML.replace("__DATA__",DATA_JSON).replace("__STAT__",json.dumps(STAT))
+open("/Users/akousist_xml7h/醫藥法規判決研究/crosstab.html","w",encoding="utf-8").write(HTML)
+print("wrote html, grand",grand,"courts",STAT["courts"],"crim%",STAT["crim_pct"])

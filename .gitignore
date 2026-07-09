@@ -1,0 +1,13 @@
+# 未壓縮的原始語料(262MB);repo 內保存的是壓縮版 data/*.jsonl.gz(80MB,一般 commit)
+*.jsonl
+
+# 大型建置中繼檔:sql.js 路線的 SQLite DB(755MB / 102MB),App 不使用、可由
+# pipeline/build_fts_db.py 重建 —— 不進 repo。
+*.db
+
+# macOS
+.DS_Store
+
+# 說明:
+# - medlaw-qa/data/fulltext.json.gz(78MB,B1 執行期用)為一般 commit 檔,未被上面規則忽略。
+# - data/醫藥五法_判決全文_112-115.jsonl.gz(80MB,原始語料壓縮版)亦為一般 commit 檔。
