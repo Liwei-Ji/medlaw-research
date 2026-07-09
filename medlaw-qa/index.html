@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>醫藥法規判決問答</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app" class="chat-root">
+
+<header class="hd">
+  <div class="right">
+    <a class="hbtn stats" id="statsbtn" href="../crosstab.html" target="_blank" rel="noopener">交叉統計</a>
+    <button class="hbtn" id="clearbtn" type="button">清除</button>
+    <button class="hbtn" id="themebtn" type="button">◐</button>
+  </div>
+</header>
+
+<main class="scroll" id="scroll">
+  <div class="col" id="col">
+    <div class="empty" id="empty">
+      <h1>醫藥五法判決檢索問答</h1>
+      <p>詢問條號、法院、年度或關鍵字</p>
+      <div class="examples" id="examples"></div>
+    </div>
+  </div>
+</main>
+
+<div class="dock">
+  <div class="dockcol">
+    <div class="modes" id="modes">
+      <button class="mode on" data-mode="fast" type="button">快搜</button>
+      <button class="mode" data-mode="deep" type="button">全文深搜</button>
+    </div>
+    <div class="inbox">
+      <textarea id="ta" rows="1" placeholder="輸入問題，例如「藥事法第83條有幾件判決？」" aria-label="輸入問題"></textarea>
+      <button class="send" id="send" type="button" disabled aria-label="送出">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+    <div class="disc">檢索資料來源司法院</div>
+  </div>
+</div>
+
+<div class="pv-scrim" id="pv-scrim"></div>
+<aside class="preview" id="preview" aria-hidden="true" aria-label="裁判書預覽">
+  <div class="pv-head">
+    <div style="min-width:0">
+      <div class="pv-eyebrow">裁判書預覽</div>
+      <div class="pv-title" id="pv-title"></div>
+    </div>
+    <button class="pv-close" id="pv-close" type="button" aria-label="關閉預覽">×</button>
+  </div>
+  <div class="pv-body" id="pv-body"></div>
+  <div class="pv-foot">
+    <a class="pv-src" id="pv-src" target="_blank" rel="noopener">在司法院裁判書系統開啟原文 ↗</a>
+  </div>
+</aside>
+
+</div>
+<script src="data/search-index.js"></script>
+<script src="data/stats.js"></script>
+<script src="fts.js"></script>
+<script src="search.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
