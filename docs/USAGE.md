@@ -12,9 +12,21 @@
   ```
   (從 `medlaw-qa/` 裡面起會使 `../crosstab.html` 變 404。埠被占用:換埠或 `lsof -ti:8000 | xargs kill`。)
 
-## 重建資料
+## 重建 / 更新資料(一鍵)
 
-見 [`../pipeline/README.md`](../pipeline/README.md):爬取 → 建索引 → 下載全文 → 產生視覺化。
+設定集中在 `pipeline/config.py`(法規、裁判日期範圍、路徑)。用 `pipeline/update.py` 跑整條管線:
+
+```
+python3 pipeline/update.py            # 只重建衍生資料(用現有資料,不連網,約 25 秒)
+python3 pipeline/update.py --scrape   # 另外重新爬清單(連司法院)
+python3 pipeline/update.py --download  # 另外重新下載每篇全文(慢,約 30–40 分)
+python3 pipeline/update.py --full      # = --scrape --download,完整更新
+```
+
+- 要延長期間(例如納入 116 年):先改 `pipeline/config.py` 的 `END` 與 `SUFFIX`,再跑 `--full`。
+- 完成後:`git add -A && git commit -m "update data" && git push`(GitHub Pages 自動更新)。
+
+各步驟細節見 [`../pipeline/README.md`](../pipeline/README.md)。
 
 ## 部署到 GitHub Pages
 

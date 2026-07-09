@@ -288,6 +288,32 @@ function renderExtras(bot, r){
     }));
   }, reduce?0:(r.deep?400:1000));
 }
+// 「思考中」+ 可展開的「思考過程」(首次深搜載入全文時)
+function makeThinking(bodyEl){
+  const el=document.createElement('div');el.className='thinking';
+  el.innerHTML=`<div class="th-head"><span class="dots"><i></i><i></i><i></i></span><span>思考中</span>`+
+    `<button class="th-toggle" type="button" aria-label="思考過程">▾</button></div>`+
+    `<div class="th-detail" hidden>`+
+      `<div class="th-step" data-k="dl">⋯ 載入判決全文庫</div>`+
+      `<div class="th-step" data-k="dz">⋯ 解壓縮</div>`+
+      `<div class="th-step" data-k="ix">⋯ 建立全文檢索</div></div>`;
+  const detail=el.querySelector('.th-detail'), toggle=el.querySelector('.th-toggle');
+  toggle.addEventListener('click',()=>{const hid=detail.hasAttribute('hidden');
+    if(hid)detail.removeAttribute('hidden');else detail.setAttribute('hidden','');
+    toggle.textContent=(hid?'▴':'▾');});
+  bodyEl.prepend(el); toBottom();
+  const set=(k,t)=>{const s=el.querySelector('.th-step[data-k="'+k+'"]');if(s)s.textContent=t;};
+  return {
+    update(ev){
+      if(ev.t==='dl') set('dl','⋯ 載入判決全文庫'+(ev.pct!=null?' …… '+ev.pct+'%':' ……'));
+      else if(ev.t==='dl_done'){ set('dl','✓ 載入判決全文庫 …… 78MB'); set('dz','✓ 解壓縮'); }
+      else if(ev.t==='idx') set('ix','⋯ 建立全文檢索');
+      else if(ev.t==='idx_done') set('ix','✓ 建立全文檢索');
+      toBottom();
+    },
+    remove(){ el.remove(); }
+  };
+}
 let busy=false;
 async function ask(){
   const q=ta.value.trim(); if(!q||busy)return;
@@ -296,14 +322,16 @@ async function ask(){
   const bot=addBot();const txt=bot.querySelector('.txt');
   let r;
   if(mode==='deep'){
-    try{
-      txt.parentElement.classList.add('caret');
-      await FTS.load(m=>{txt.textContent=m;toBottom();});
-      txt.parentElement.classList.remove('caret');
-    }catch(e){
-      txt.parentElement.classList.remove('caret');
-      txt.innerHTML='全文深搜需以<b>本機伺服器</b>開啟：在 <b>medlaw-qa/</b> 執行 <code>python3 -m http.server</code>，再開 http://localhost:8000/（直接雙擊檔案無法載入資料庫）。';
-      busy=false;send.disabled=ta.value.trim()==='';return;
+    if(!FTS.ready()){
+      const think=makeThinking(bot.querySelector('.body'));
+      try{
+        await FTS.load(ev=>think.update(ev));
+        think.remove();
+      }catch(e){
+        think.remove();
+        txt.innerHTML='全文深搜需以<b>本機伺服器</b>開啟:在<b>專案根目錄</b>執行 <code>python3 -m http.server</code>,再開 <b>http://localhost:8000/medlaw-qa/</b>(直接雙擊檔案無法載入資料庫)。';
+        busy=false;send.disabled=ta.value.trim()==='';return;
+      }
     }
     r=deepQuery(q);
     typeInto(txt,answerText(r),()=>renderExtras(bot,r));

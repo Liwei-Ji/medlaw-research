@@ -7,18 +7,28 @@ window.FTS = (function(){
   function available(){ return 'DecompressionStream' in window; }
   function ready(){ return !!docs; }
 
-  function load(onProgress){
+  // report(ev): {t:'dl',pct} 下載中 | {t:'dl_done'} | {t:'idx'} 建索引 | {t:'idx_done'}
+  function load(report){
     if(docs) return Promise.resolve(true);
     if(loading) return loading;
     loading=(async function(){
-      onProgress&&onProgress('下載全文資料（約 78MB，首次較久）…');
       var resp=await fetch('data/fulltext.json.gz');
       if(!resp.ok) throw new Error('無法取得全文資料檔');
-      var stream=resp.body.pipeThrough(new DecompressionStream('gzip'));
-      onProgress&&onProgress('解壓與解析全文…');
-      docs=JSON.parse(await new Response(stream).text());
+      var total=+(resp.headers.get('Content-Length')||0), received=0;
+      var counter=new TransformStream({transform:function(chunk,ctrl){
+        received+=chunk.byteLength;
+        report&&report({t:'dl', pct: total?Math.round(received/total*100):null});
+        ctrl.enqueue(chunk);
+      }});
+      var stream=resp.body.pipeThrough(counter).pipeThrough(new DecompressionStream('gzip'));
+      var text=await new Response(stream).text();
+      report&&report({t:'dl_done'});
+      report&&report({t:'idx'});
+      await new Promise(function(r){setTimeout(r,0);});   // 讓「建立檢索」先畫出來,再做阻塞的 parse
+      docs=JSON.parse(text);
       byId=Object.create(null);
       for(var i=0;i<docs.length;i++) byId[docs[i].i]=i;
+      report&&report({t:'idx_done'});
       return true;
     })();
     return loading;
