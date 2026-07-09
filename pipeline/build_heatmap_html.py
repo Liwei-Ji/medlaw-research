@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import json
-data=json.load(open("heatmap_data.json",encoding="utf-8"))
+import json, os, config
+data=json.load(open(os.path.join(config.HERE,"heatmap_data.json"),encoding="utf-8"))
 DATA_JSON=json.dumps(data,ensure_ascii=False)
 # grand stats
 grand=0;crim=0
@@ -277,5 +277,5 @@ buildScale();render();
 </script>
 </div>'''
 HTML=HTML.replace("__DATA__",DATA_JSON).replace("__STAT__",json.dumps(STAT))
-open("/Users/akousist_xml7h/醫藥法規判決研究/crosstab.html","w",encoding="utf-8").write(HTML)
+open(config.CROSSTAB,"w",encoding="utf-8").write(HTML)
 print("wrote html, grand",grand,"courts",STAT["courts"],"crim%",STAT["crim_pct"])

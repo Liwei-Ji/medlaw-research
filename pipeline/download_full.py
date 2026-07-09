@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # Download every judgment's full text (data.aspx) and parse structured fields. Resumable, concurrent.
+import config
 import urllib.request, urllib.parse, http.cookiejar, re, time, json, sys, threading, html as H
 from concurrent.futures import ThreadPoolExecutor
 BASE="https://judgment.judicial.gov.tw/FJUD/"
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
-INDEX="醫藥五法_全文總索引_112-115.json"
-OUT="fulltext.jsonl"
+INDEX=config.FULLTEXT_INDEX
+OUT=config.FULLTEXT_JSONL
 WORKERS=6
 LAW_NAMES=["藥事法","醫療器材管理法","醫療法","醫師法","藥師法"]
 _tls=threading.local()

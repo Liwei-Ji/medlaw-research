@@ -4,9 +4,22 @@
 資料來源：司法院裁判書查詢系統 `https://judgment.judicial.gov.tw/FJUD/`。
 資料快照：**2026-07-07**（裁判日期 112/1/1–115/12/31；115 年僅至 7 月）。
 
-> ⚠️ 路徑注意：多數腳本以**當前工作目錄(cwd)**讀寫檔案（例如 `open("raw_cause.json")`）。
-> 這些腳本原本在單一工作目錄下執行，故此處平放以維持相對路徑。重跑時請在 `pipeline/` 內執行；
-> 產物會落在 `pipeline/`，再依需要覆蓋到 `../data/`（`build_heatmap_html.py` 例外，直接寫 `../crosstab.html`）。
+## 更新資料(一鍵)
+
+設定集中在 **`config.py`**(法規、裁判日期範圍 `START`/`END`、檔名後綴、路徑)。**`update.py`** 依序跑完整條管線並把產物寫進正確位置。
+
+```
+python3 pipeline/update.py            # 只重建衍生資料(用現有 raw_/全文;不連網,約 25 秒)
+python3 pipeline/update.py --scrape   # 另外重新爬清單(連司法院)
+python3 pipeline/update.py --download  # 另外重新下載每篇全文(慢,約 30–40 分)
+python3 pipeline/update.py --full      # = --scrape --download,完整更新
+```
+
+- **改法規/日期範圍**:編輯 `config.py`(例如納入 116 年就改 `END` 與 `SUFFIX`),再跑 `--full`。
+- 完成後:`git add -A && git commit -m "update data" && git push`(GitHub Pages 自動更新)。
+- 各腳本已改為以 `config.py` 提供的**絕對路徑**讀寫,不再依賴 cwd;`update.py` 會以 `pipeline/` 為工作目錄執行。
+
+以下為各腳本細節(update.py 即依此順序串接)。
 
 ## 執行順序與輸入→輸出
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Cause-of-action index for the 5 medical/pharma laws, judgment date 112-115.
+import config
 import urllib.request, urllib.parse, http.cookiejar, re, time, json, sys, math, html as H
 BASE="https://judgment.judicial.gov.tw/FJUD/"
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
@@ -51,7 +52,7 @@ def parse_page(html):
     return rows
 def scrape(field,val):
     op=sess();u1=BASE+"Default_AD.aspx";h=get(op,u1)
-    f={"__VIEWSTATE":hid(h,"__VIEWSTATE"),"__EVENTVALIDATION":hid(h,"__EVENTVALIDATION"),"__VIEWSTATEGENERATOR":hid(h,"__VIEWSTATEGENERATOR"),"__VIEWSTATEENCRYPTED":"","jud_court":"","sel_judword":"","jud_sys":"","judtype":"","whosub":"0","jud_kw":"","jud_year":"","jud_case":"","jud_no":"","jud_no_end":"","jud_title":"","jud_jmain":"","dy1":"112","dm1":"","dd1":"","dy2":"115","dm2":"","dd2":"","KbStart":"","KbEnd":"","ctl00$cp_content$btnQry":"送出查詢"}
+    f={"__VIEWSTATE":hid(h,"__VIEWSTATE"),"__EVENTVALIDATION":hid(h,"__EVENTVALIDATION"),"__VIEWSTATEGENERATOR":hid(h,"__VIEWSTATEGENERATOR"),"__VIEWSTATEENCRYPTED":"","jud_court":"","sel_judword":"","jud_sys":"","judtype":"","whosub":"0","jud_kw":"","jud_year":"","jud_case":"","jud_no":"","jud_no_end":"","jud_title":"","jud_jmain":"","dy1":str(config.START[0]),"dm1":str(config.START[1]),"dd1":str(config.START[2]),"dy2":str(config.END[0]),"dm2":str(config.END[1]),"dd2":str(config.END[2]),"KbStart":"","KbEnd":"","ctl00$cp_content$btnQry":"送出查詢"}
     f[field]=val
     r=post(op,u1,f,u1)
     m=re.search(r'qryresultlst\.aspx\?ty=JUDBOOK&q=([0-9a-f]+)',r)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Full 違反藥事法 scrape with adaptive date partitioning to bypass the 500-record pagination cap.
+import config
 import urllib.request, urllib.parse, http.cookiejar, re, time, json, sys, math, html as H
 BASE="https://judgment.judicial.gov.tw/FJUD/"
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
@@ -74,7 +75,7 @@ def scrape_range(cause_val,y1,m1,d1,y2,m2,d2,depth=0):
     second=scrape_range(cause_val,ny,nm,1,y2,m2,d2,depth+1)
     return first+second
 if __name__=="__main__":
-    rows=scrape_range("違反藥事法",112,1,1,115,12,31)
+    rows=scrape_range("違反藥事法",*config.START,*config.END)
     # dedup by id
     seen={};[seen.setdefault(r["id"],r) for r in rows]
     uniq=list(seen.values())

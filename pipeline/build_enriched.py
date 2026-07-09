@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-import json, csv, collections, re
-rows=[json.loads(l) for l in open("fulltext.jsonl",encoding="utf-8")]
+import json, csv, collections, re, config
+BASE=config.STRUCTURED[:-5]   # data/醫藥五法_結構化_<suffix>
+with config.open_jsonl(config.FULLTEXT_JSONL) as _f:
+    rows=[json.loads(l) for l in _f]
 rows.sort(key=lambda r:(r.get("jdate",""),r.get("id","")),reverse=True)
 print("loaded",len(rows))
 
@@ -116,10 +118,10 @@ stats={
 meta={"title":"醫藥五法 判決全文結構化資料（112-115）","資料來源":"司法院裁判書系統","擷取日期":"2026-07-07",
  "說明":"逐案下載裁判書全文並解析結構欄位。適用條號=全文中出現之五法條號；主文/判決結果解析自主文段；承審法官/書記官/檢察官解析自裁判書。承審法官涵蓋率約9成（少數法院逐字加標籤者未解析，全文欄位可回溯）。",
  "統計":stats}
-json.dump({"meta":meta,"records":structured},open("醫藥五法_結構化_112-115.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
+json.dump({"meta":meta,"records":structured},open(BASE+".json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 
 # CSV (flat, no full text)
-with open("醫藥五法_結構化_112-115.csv","w",encoding="utf-8-sig",newline="") as f:
+with open(BASE+".csv","w",encoding="utf-8-sig",newline="") as f:
     w=csv.writer(f);w.writerow(["法規","類別","法院","年度","字別","案號","文別","裁判日期","案由","適用五法條號","判決結果摘要","承審法官","書記官","檢察官","主文","連結","識別碼"])
     for r in structured:
         arts="；".join(f"{k} §{'、'.join(v)}" for k,v in (r["適用條號"] or {}).items())

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-import json, csv, collections, re
-raw=json.load(open("raw_cause.json",encoding="utf-8"))
+import json, csv, collections, re, os, config
+HERE=config.HERE; BASE=config.CAUSE_INDEX[:-5]   # data/醫藥五法_判決索引_<suffix>
+raw=json.load(open(os.path.join(HERE,"raw_cause.json"),encoding="utf-8"))
 # swap in the COMPLETE 藥事法 set (raw_cause 藥事法 was truncated at the 500-record cap)
-ys=json.load(open("raw_yaoshifa_full.json",encoding="utf-8"))
+ys=json.load(open(os.path.join(HERE,"raw_yaoshifa_full.json"),encoding="utf-8"))
 raw=[b for b in raw if b["law"]!="藥事法"]+[ys]
 # flatten + dedup by id (merge law tags if a judgment appears under multiple queries)
 by_id={}
@@ -66,7 +67,7 @@ meta={
  "主要法院分布_前15":dict(per_court.most_common(15)),
 }
 out={"meta":meta,"records":records}
-json.dump(out,open("醫藥五法_判決索引_112-115.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
+json.dump(out,open(BASE+".json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 
 # ---- classified version: 法規 -> 類別 -> records ----
 LAW_ORDER=["藥事法","醫療器材管理法","醫療法","醫師法","藥師法"]
@@ -87,12 +88,12 @@ for law in LAW_ORDER:
         "檢索方式":("案由「違反%s」"%law if law!="藥師法" else "全文含「藥師法」"),
         "類別分布":{c["類別"]:c["筆數"] for c in cats},"案件":cats})
 json.dump({"meta":meta,"分類":classified},
-    open("醫藥五法_判決索引_112-115_分類.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
+    open(BASE+"_分類.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 print("classified laws:",[(c["法規"],c["筆數"]) for c in classified])
 
 # CSV
 cols=["laws","category","court","case_year","word","case_no","doctype","jdate","cause","size","title","snippet","url","id"]
-with open("醫藥五法_判決索引_112-115.csv","w",encoding="utf-8-sig",newline="") as f:
+with open(BASE+".csv","w",encoding="utf-8-sig",newline="") as f:
     w=csv.writer(f);w.writerow(["法規","類別","法院","年度","字別","案號","文別","裁判日期","案由","大小","標題","摘要","連結","識別碼"])
     for r in records:
         w.writerow(["、".join(r["laws"])]+[r.get(c,"") if c!="laws" else "" for c in cols[1:]])

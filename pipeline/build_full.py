@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-import json, csv, collections, re
+import json, csv, collections, re, os, config
+HERE=config.HERE; BASE=config.FULLTEXT_INDEX[:-5]   # data/醫藥五法_全文總索引_<suffix>
+_j=lambda n: os.path.join(HERE,n)
 # --- load full-text blocks ---
-blocks=json.load(open("raw_fulltext_藥事法.json",encoding="utf-8"))+json.load(open("raw_fulltext_rest.json",encoding="utf-8"))
+blocks=json.load(open(_j("raw_fulltext_藥事法.json"),encoding="utf-8"))+json.load(open(_j("raw_fulltext_rest.json"),encoding="utf-8"))
 # --- cause-based id sets (for flagging 據該法起訴) ---
 cause_ids=collections.defaultdict(set)
-cb=json.load(open("raw_cause.json",encoding="utf-8"))
-yb=json.load(open("raw_yaoshifa_full.json",encoding="utf-8"))
+cb=json.load(open(_j("raw_cause.json"),encoding="utf-8"))
+yb=json.load(open(_j("raw_yaoshifa_full.json"),encoding="utf-8"))
 for blk in cb:
     if blk["law"]=="藥事法":continue      # use complete set below
     for r in blk["rows"]:cause_ids[blk["law"]].add(r["id"])
@@ -65,7 +67,7 @@ meta={
  "案件類別分布":dict(per_cat),
  "各年度分布(案號年度)":dict(sorted(per_year.items())),
  "主要法院分布_前15":dict(per_court.most_common(15))}
-json.dump({"meta":meta,"records":records},open("醫藥五法_全文總索引_112-115.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
+json.dump({"meta":meta,"records":records},open(BASE+".json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 
 # classified 法規->類別
 LAW_ORDER=["藥事法","醫療器材管理法","醫療法","醫師法","藥師法"]
@@ -78,10 +80,10 @@ for law in LAW_ORDER:
         if not sub:continue
         cats.append({"類別":cat,"筆數":len(sub),"判決":[{"法院":r["court"],"年度":r["case_year"],"字別":r["word"],"案號":r["case_no"],"文別":r["doctype"],"裁判日期":r["jdate"],"案由":r["cause"],"據該法起訴":law in r["據案由起訴"],"標題":r["title"],"摘要":r["snippet"],"連結":r["url"],**({"跨法規":r["laws"]} if len(r["laws"])>1 else {})} for r in sub]})
     classified.append({"法規":law,"筆數":len(lr),"類別分布":{c["類別"]:c["筆數"] for c in cats},"案件":cats})
-json.dump({"meta":meta,"分類":classified},open("醫藥五法_全文總索引_112-115_分類.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
+json.dump({"meta":meta,"分類":classified},open(BASE+"_分類.json","w",encoding="utf-8"),ensure_ascii=False,indent=2)
 
 # CSV
-with open("醫藥五法_全文總索引_112-115.csv","w",encoding="utf-8-sig",newline="") as f:
+with open(BASE+".csv","w",encoding="utf-8-sig",newline="") as f:
     w=csv.writer(f);w.writerow(["法規","據該法起訴","類別","法院","年度","字別","案號","文別","裁判日期","案由","大小","標題","摘要","連結","識別碼"])
     for r in records:
         w.writerow(["、".join(r["laws"]),"、".join(r["據案由起訴"]),r["category"],r["court"],r["case_year"],r["word"],r["case_no"],r["doctype"],r["jdate"],r["cause"],r["size"],r["title"],r["snippet"],r["url"],r["id"]])

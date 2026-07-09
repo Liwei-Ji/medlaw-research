@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # FULL-TEXT scrape: every judgment (112-115) whose text mentions each of the 5 laws.
 # Adaptive date partitioning bypasses the 500-record pagination cap.
+import config
 import urllib.request, urllib.parse, http.cookiejar, re, time, json, sys, math, html as H, calendar
 BASE="https://judgment.judicial.gov.tw/FJUD/"
 UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
@@ -82,7 +83,7 @@ if __name__=="__main__":
     for law,field,val in QUERIES:
         if only and law!=only:continue
         print(f"===[{law}] {field}={val}===",file=sys.stderr);sys.stderr.flush()
-        rows=scrape_range(field,val,112,1,1,115,12,31)
+        rows=scrape_range(field,val,*config.START,*config.END)
         seen={};[seen.setdefault(r["id"],r) for r in rows];uniq=list(seen.values())
         for r in uniq:r["law"]=law
         out.append({"law":law,"field":field,"value":val,"unique":len(uniq),"raw":len(rows),"rows":uniq})
