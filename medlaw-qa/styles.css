@@ -70,7 +70,8 @@ html,body{margin:0;height:100%}
   .bubble p{margin:0 0 8px}.bubble p:last-child{margin-bottom:0}
   .bubble b{font-weight:700}
   .bubble .muted-note{color:var(--muted);font-size:12.5px}
-  .caret::after{content:'▍';color:var(--accent);animation:blink 1s steps(1) infinite}
+  .caret::after{content:'';display:inline-block;width:.58em;height:.58em;border-radius:50%;
+    background:var(--accent);vertical-align:middle;margin:0 1px 2px 2px;animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
 
   /* stat chip inside answer */

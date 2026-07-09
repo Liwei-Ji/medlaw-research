@@ -12,7 +12,7 @@ for ct,ys in data["cube"].items():
 STAT=dict(grand=grand,courts=len(data["courts"]),crim_pct=round(crim/grand*100))
 
 HTML=r'''<link rel="icon" href="favicon.ico">
-<title>交叉統計</title>
+<title>交叉統計 | 醫藥五法判決 法院×年度×類別</title>
 <div class="viz-root" id="app">
 <style>
   html,body{margin:0;padding:0}

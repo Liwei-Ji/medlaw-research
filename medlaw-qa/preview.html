@@ -71,7 +71,8 @@ html,body{margin:0;height:100%}
   .bubble p{margin:0 0 8px}.bubble p:last-child{margin-bottom:0}
   .bubble b{font-weight:700}
   .bubble .muted-note{color:var(--muted);font-size:12.5px}
-  .caret::after{content:'▍';color:var(--accent);animation:blink 1s steps(1) infinite}
+  .caret::after{content:'';display:inline-block;width:.58em;height:.58em;border-radius:50%;
+    background:var(--accent);vertical-align:middle;margin:0 1px 2px 2px;animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
 
   /* stat chip inside answer */
@@ -359,6 +360,40 @@ window.STATS={"total":14031,"snapshot":"2026-07-07","per_law":{"醫療法":2237,
 const $=s=>document.querySelector(s);
 const scroll=$('#scroll'),col=$('#col'),ta=$('#ta'),send=$('#send'),empty=$('#empty');
 const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+// 機械鍵盤打字音效(Web Audio 合成,無外部檔、可離線;由使用者送出的手勢啟動)
+let _actx=null, _lastTick=0, _noiseBuf=null, soundOn=false;   // 音效預設關閉(改 true 可重新啟用)
+function _noise(ctx){
+  if(_noiseBuf) return _noiseBuf;
+  const len=Math.floor(ctx.sampleRate*0.05), b=ctx.createBuffer(1,len,ctx.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+  return (_noiseBuf=b);
+}
+function typeTick(){
+  if(!soundOn) return;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+    if(!_actx) _actx=new AC();
+    if(_actx.state==='suspended') _actx.resume();
+    const now=performance.now(); if(now-_lastTick<55) return; _lastTick=now;
+    const ctx=_actx, t=ctx.currentTime;
+    // click:帶通濾波的白噪短爆點(軸的喀噠)
+    const src=ctx.createBufferSource(); src.buffer=_noise(ctx);
+    const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2200+Math.random()*800; bp.Q.value=0.7;
+    const cg=ctx.createGain();
+    cg.gain.setValueAtTime(0.0001,t);
+    cg.gain.exponentialRampToValueAtTime(0.13,t+0.001);
+    cg.gain.exponentialRampToValueAtTime(0.0001,t+0.035);
+    src.connect(bp).connect(cg).connect(ctx.destination); src.start(t); src.stop(t+0.05);
+    // thock:低頻鍵帽觸底的厚度
+    const o=ctx.createOscillator(), tg=ctx.createGain();
+    o.type='sine'; o.frequency.value=145+Math.random()*45;
+    tg.gain.setValueAtTime(0.0001,t);
+    tg.gain.exponentialRampToValueAtTime(0.06,t+0.002);
+    tg.gain.exponentialRampToValueAtTime(0.0001,t+0.05);
+    o.connect(tg).connect(ctx.destination); o.start(t); o.stop(t+0.06);
+  }catch(e){}
+}
 const IDX=(window.SEARCH_INDEX||[]);
 const STATS=(window.STATS||{});
 SearchEngine.build(IDX);
@@ -594,7 +629,7 @@ function typeInto(el,html,done){
   // type plain text but allow simple <b>..</b>; we type on a temp text then set html at end
   const plain=html.replace(/<[^>]+>/g,'');
   let i=0;el.parentElement.classList.add('caret');
-  const step=()=>{ i+=Math.max(1,Math.round(plain.length/110)); el.textContent=plain.slice(0,i); toBottom();
+  const step=()=>{ i+=Math.max(1,Math.round(plain.length/110)); el.textContent=plain.slice(0,i); typeTick(); toBottom();
     if(i<plain.length){setTimeout(step,30);}else{el.innerHTML=html;el.parentElement.classList.remove('caret');done&&done();} };
   step();
 }

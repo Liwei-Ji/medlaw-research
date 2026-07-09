@@ -3,16 +3,79 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="0; url=medlaw-qa/">
+<title>醫藥五法判決檢索與分析 | 藥事法・醫療器材管理法・醫療法・醫師法・藥師法</title>
 <link rel="icon" href="favicon.ico">
-<title>醫藥法規判決檢索問答</title>
 <style>
-  html,body{margin:0;height:100%;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;
-    background:#f7f7f8;color:#1f2329;display:grid;place-items:center}
-  a{color:#2a6fd6}
+  :root{--page:#f7f7f8;--surface:#fff;--ink:#1f2329;--ink-2:#4c525c;--muted:#8a909b;
+    --hair:#e7e8ec;--accent:#2a6fd6;--accent-ink:#1c5cab;--tag:#eaf1fb;--tag-ink:#1c5cab}
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;background:var(--page);
+    color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:clamp(28px,6vw,64px) 20px 48px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  h1{font-size:clamp(24px,4vw,34px);font-weight:780;letter-spacing:-.015em;margin:.3em 0 .2em;text-wrap:balance}
+  .lead{font-size:16px;color:var(--ink-2);max-width:60ch}
+  .stats{display:flex;flex-wrap:wrap;gap:10px;margin:20px 0 24px}
+  .stat{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:10px 15px}
+  .stat b{font-size:20px;font-weight:770;font-variant-numeric:tabular-nums}
+  .stat span{display:block;font-size:11.5px;color:var(--muted)}
+  .cta{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 28px}
+  .btn{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-weight:650;font-size:14.5px;
+    border-radius:11px;padding:11px 18px;border:1px solid var(--hair)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-ink)}
+  .btn.ghost{background:var(--surface);color:var(--ink)}
+  .btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .demo{width:100%;max-width:720px;border:1px solid var(--hair);border-radius:14px;margin:8px 0 30px}
+  h2{font-size:18px;font-weight:730;margin:28px 0 8px}
+  ul{margin:8px 0 0;padding-left:20px}
+  li{margin:5px 0;color:var(--ink-2)}
+  .laws{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+  .laws span{background:var(--tag);color:var(--tag-ink);font-size:12.5px;font-weight:600;border-radius:999px;padding:3px 10px}
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--hair);font-size:12.5px;color:var(--muted)}
+  footer a{color:var(--accent-ink)}
+  a{color:var(--accent-ink)}
 </style>
 </head>
 <body>
-<p>前往 <a href="medlaw-qa/">醫藥法規判決檢索問答</a>…（若未自動跳轉請點連結）</p>
+<main class="wrap">
+  <div class="eyebrow">司法院裁判書 · 裁判日期 112–115 年</div>
+  <h1>醫藥五法判決檢索與分析</h1>
+  <p class="lead">對<strong>醫藥五法</strong>(藥事法、醫療器材管理法、醫療法、醫師法、藥師法)近年判決做的檢索與分析工具。全文檢索、條號/法院/年度篩選、交叉統計,<strong>每一筆都連回司法院原始裁判書</strong>;純前端、可離線、<strong>執行期不呼叫任何 AI</strong>。</p>
+
+  <div class="laws"><span>藥事法</span><span>醫療器材管理法</span><span>醫療法</span><span>醫師法</span><span>藥師法</span></div>
+
+  <div class="stats">
+    <div class="stat"><b>14,031</b><span>去重判決</span></div>
+    <div class="stat"><b>112–115</b><span>裁判年度</span></div>
+    <div class="stat"><b>42</b><span>法院</span></div>
+    <div class="stat"><b>0</b><span>執行期 AI 呼叫</span></div>
+  </div>
+
+  <div class="cta">
+    <a class="btn primary" href="medlaw-qa/">開始檢索問答 →</a>
+    <a class="btn ghost" href="crosstab.html">交叉統計(法院×年度×類別)</a>
+  </div>
+
+  <img class="demo" src="docs/demo.gif" alt="醫藥五法判決檢索問答操作示範" loading="lazy">
+
+  <h2>這是什麼</h2>
+  <p>一套資訊檢索(IR)系統,外觀做成對話介面:輸入條號、法院、年度或關鍵字,系統以索引比對與全文檢索找出相關判決,並附上引用來源。與生成式 AI 不同,答案由查表與模板組出,<strong>可離線、零推論成本、每項結果皆可對應原始裁判資料</strong>。</p>
+
+  <h2>功能</h2>
+  <ul>
+    <li><strong>快搜</strong>:對結構欄位、適用條號、案由、判決結果做即時檢索與篩選(法規/條號/法院/年度/類別)。</li>
+    <li><strong>全文深搜</strong>:對 14,031 篇判決的整篇全文做任意字/片語檢索,命中片段高亮,並可在側欄閱讀全文。</li>
+    <li><strong>交叉統計</strong>:法院 × 年度 × 類別的互動熱力圖。</li>
+    <li>常見主題:密醫罪(醫師法§28)、轉讓禁藥(藥事法§83)、妨害醫療業務(醫療法§106)、醫療過失(醫療法§82)等。</li>
+  </ul>
+
+  <footer>
+    資料來源:<a href="https://judgment.judicial.gov.tw/FJUD/" rel="noopener">司法院裁判書查詢系統</a>(公開資料),裁判日期民國 112–115 年,資料快照 2026-07-07。
+    內容以司法院原文為準;本站僅供研究與檢索,非法律意見。
+    原始碼:<a href="https://github.com/Liwei-Ji/medlaw-research" rel="noopener">GitHub</a>。
+  </footer>
+</main>
 </body>
 </html>
