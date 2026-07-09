@@ -183,7 +183,7 @@ function buildCard(r){
   if(r.r)c.querySelector('.res').textContent='主文：'+r.r;
   if(r.snip){const sp=document.createElement('div');sp.className='snip';sp.appendChild(hlMarks(r.snip));
     c.insertBefore(sp, c.querySelector('.open'));}
-  c.querySelector('button.open').addEventListener('click',()=>openPreview(r));
+  c.querySelector('button.open').addEventListener('click',()=>openPreview(r,c));
   return c;
 }
 // paginated source block with a 載入更多 button. onFirst() fires after page 1 revealed.
@@ -327,14 +327,15 @@ $('#themebtn').onclick=()=>{const root=document.documentElement;
   root.setAttribute('data-theme',cur==='dark'?'light':'dark');};
 
 // ---------- right-side judgment preview drawer ----------
-const preview=$('#preview'),scrim=$('#pv-scrim');
+const preview=$('#preview'),scrim=$('#pv-scrim'),appEl=document.getElementById('app');
+let activeCard=null;
 function metaRow(dt,dd){
   const t=document.createElement('dt');t.textContent=dt;
   const d=document.createElement('dd');
   if(typeof dd==='string'){d.textContent=dd;}else{d.appendChild(dd);}
   return [t,d];
 }
-function openPreview(r){
+function openPreview(r,cardEl){
   $('#pv-title').textContent=`${r.c} ${r.y}年${r.w}字第${r.n}號`;
   const body=$('#pv-body');body.innerHTML='';
   const dl=document.createElement('dl');dl.className='pv-meta';
@@ -362,9 +363,17 @@ function openPreview(r){
     body.appendChild(note);
   }
   $('#pv-src').href=r.url;
+  appEl.classList.add('drawer-open');
   preview.classList.add('open');scrim.classList.add('open');preview.setAttribute('aria-hidden','false');
+  if(activeCard) activeCard.classList.remove('active');
+  activeCard=cardEl||null;
+  if(activeCard){ activeCard.classList.add('active'); activeCard.scrollIntoView({block:'nearest'}); }
 }
-function closePreview(){preview.classList.remove('open');scrim.classList.remove('open');preview.setAttribute('aria-hidden','true');}
+function closePreview(){
+  appEl.classList.remove('drawer-open');
+  preview.classList.remove('open');scrim.classList.remove('open');preview.setAttribute('aria-hidden','true');
+  if(activeCard){ activeCard.classList.remove('active'); activeCard=null; }
+}
 $('#pv-close').addEventListener('click',closePreview);
 scrim.addEventListener('click',closePreview);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&preview.classList.contains('open'))closePreview();});

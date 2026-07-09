@@ -37,7 +37,11 @@ html,body{margin:0;height:100%}
   @media(max-width:560px){.brand .s{display:none}.pill{display:none}}
 
   /* scroll area */
-  .scroll{flex:1;overflow-y:auto;scroll-behavior:smooth}
+  .scroll{flex:1;overflow-y:auto;scroll-behavior:smooth;
+    scrollbar-width:none;scrollbar-color:transparent transparent}
+  .scroll::-webkit-scrollbar{width:0;height:0}
+  .scroll::-webkit-scrollbar-track{background:transparent}
+  .scroll::-webkit-scrollbar-thumb{background:transparent}
   .col{max-width:760px;margin:0 auto;padding:26px clamp(14px,4vw,22px) 12px}
 
   /* empty state */
@@ -117,6 +121,7 @@ html,body{margin:0;height:100%}
   @keyframes dot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
 
   /* right-side judgment preview drawer */
+  .chat-root{--pv-w:clamp(400px,42vw,560px);transition:padding-right .24s ease}
   .pv-scrim{position:fixed;inset:0;background:rgba(15,18,24,.32);opacity:0;visibility:hidden;
     transition:opacity .2s;z-index:55}
   .pv-scrim.open{opacity:1;visibility:visible}
@@ -124,6 +129,14 @@ html,body{margin:0;height:100%}
     border-left:1px solid var(--hair);box-shadow:-14px 0 44px rgba(15,18,24,.18);
     transform:translateX(100%);transition:transform .24s ease;z-index:60;display:flex;flex-direction:column}
   .preview.open{transform:none}
+  /* active source card (the one shown in the drawer) */
+  .card.active{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent);background:var(--tag)}
+  /* desktop: split / push layout (no scrim; chat shifts left to make room) */
+  @media (min-width:900px){
+    .pv-scrim{display:none}
+    .preview{width:var(--pv-w);box-shadow:-8px 0 24px rgba(15,18,24,.08)}
+    .chat-root.drawer-open{padding-right:var(--pv-w)}
+  }
   .pv-head{flex:none;display:flex;align-items:flex-start;gap:10px;padding:16px 18px;border-bottom:1px solid var(--hair)}
   .pv-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
   .pv-title{font-weight:730;font-size:15.5px;line-height:1.4;margin-top:3px;color:var(--ink)}
@@ -521,7 +534,7 @@ function buildCard(r){
   if(r.r)c.querySelector('.res').textContent='主文：'+r.r;
   if(r.snip){const sp=document.createElement('div');sp.className='snip';sp.appendChild(hlMarks(r.snip));
     c.insertBefore(sp, c.querySelector('.open'));}
-  c.querySelector('button.open').addEventListener('click',()=>openPreview(r));
+  c.querySelector('button.open').addEventListener('click',()=>openPreview(r,c));
   return c;
 }
 // paginated source block with a 載入更多 button. onFirst() fires after page 1 revealed.
@@ -665,14 +678,15 @@ $('#themebtn').onclick=()=>{const root=document.documentElement;
   root.setAttribute('data-theme',cur==='dark'?'light':'dark');};
 
 // ---------- right-side judgment preview drawer ----------
-const preview=$('#preview'),scrim=$('#pv-scrim');
+const preview=$('#preview'),scrim=$('#pv-scrim'),appEl=document.getElementById('app');
+let activeCard=null;
 function metaRow(dt,dd){
   const t=document.createElement('dt');t.textContent=dt;
   const d=document.createElement('dd');
   if(typeof dd==='string'){d.textContent=dd;}else{d.appendChild(dd);}
   return [t,d];
 }
-function openPreview(r){
+function openPreview(r,cardEl){
   $('#pv-title').textContent=`${r.c} ${r.y}年${r.w}字第${r.n}號`;
   const body=$('#pv-body');body.innerHTML='';
   const dl=document.createElement('dl');dl.className='pv-meta';
@@ -700,9 +714,17 @@ function openPreview(r){
     body.appendChild(note);
   }
   $('#pv-src').href=r.url;
+  appEl.classList.add('drawer-open');
   preview.classList.add('open');scrim.classList.add('open');preview.setAttribute('aria-hidden','false');
+  if(activeCard) activeCard.classList.remove('active');
+  activeCard=cardEl||null;
+  if(activeCard){ activeCard.classList.add('active'); activeCard.scrollIntoView({block:'nearest'}); }
 }
-function closePreview(){preview.classList.remove('open');scrim.classList.remove('open');preview.setAttribute('aria-hidden','true');}
+function closePreview(){
+  appEl.classList.remove('drawer-open');
+  preview.classList.remove('open');scrim.classList.remove('open');preview.setAttribute('aria-hidden','true');
+  if(activeCard){ activeCard.classList.remove('active'); activeCard=null; }
+}
 $('#pv-close').addEventListener('click',closePreview);
 scrim.addEventListener('click',closePreview);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&preview.classList.contains('open'))closePreview();});
