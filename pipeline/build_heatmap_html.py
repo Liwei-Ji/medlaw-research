@@ -11,7 +11,8 @@ for ct,ys in data["cube"].items():
             if c=="刑事":crim+=n
 STAT=dict(grand=grand,courts=len(data["courts"]),crim_pct=round(crim/grand*100))
 
-HTML=r'''<div class="viz-root" id="app">
+HTML=r'''<link rel="icon" href="favicon.ico">
+<div class="viz-root" id="app">
 <style>
   html,body{margin:0;padding:0}
   .viz-root{
