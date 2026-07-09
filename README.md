@@ -30,12 +30,12 @@ medlaw-research/
 
 - [`medlaw-qa/README.md`](medlaw-qa/README.md) — 問答檢索架構(A 快搜 / 全文深搜)、檔案、部署。
 - [`pipeline/README.md`](pipeline/README.md) — 資料爬取 → 建索引 → 下載全文 → 產生視覺化。
-- [`docs/NOTES.md`](docs/NOTES.md) — 學習筆記(IR、倒排索引、中文斷詞…)與系統取捨(全文DB體積之旅)。
+- [`docs/NOTES.md`](docs/NOTES.md) — 學習筆記(IR、倒排索引、中文斷詞)與工程取捨(全文檢索如何從 SQLite 755MB 縮到 78MB 掃描式)。
 - [`docs/USAGE.md`](docs/USAGE.md) — 使用與部署、重建資料。
 
 ## 資料來源與使用聲明
 
-- **來源**:司法院裁判書查詢系統(https://judgment.judicial.gov.tw/FJUD/default.aspx),為公開資料。每筆均附回原始裁判書連結,內容一律以司法院原文為準。
+- **來源**:[司法院裁判書查詢系統](https://judgment.judicial.gov.tw/FJUD/default.aspx),為公開資料。每筆均附回原始裁判書連結,內容一律以司法院原文為準。
 - **時效**:涵蓋裁判日期 112–115 年(115年僅至7月)
 - **解析限制**:法院、案號、裁判日期與全文為系統實際資料;由全文以規則擷取的欄位(適用條號、刑度、緩刑、罰金/沒收、承審法官)可能有缺漏或誤差,金額類尤其不完整。
 - **用途**:僅供研究與檢索,非法律意見;引用前請以原始裁判書核對。
